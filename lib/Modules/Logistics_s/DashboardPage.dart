@@ -293,14 +293,14 @@ class _LogisticsDashboardPageState extends State<LogisticsDashboardPage> {
                 Text(
                   kpi.title,
                   style: GoogleFonts.inter(
-                    fontSize: 14,
+                    fontSize: 12,
                     color: Colors.grey[600],
                   ),
                 ),
                 Text(
                   kpi.value,
                   style: GoogleFonts.inter(
-                    fontSize: 22,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
@@ -474,9 +474,9 @@ class _LogisticsDashboardPageState extends State<LogisticsDashboardPage> {
           shrinkWrap: true,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: size.width > 700 ? 4 : 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 2.5,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 1,
+            childAspectRatio: 2.2,
           ),
           itemBuilder: (context, index) {
             final s = stats[index];
