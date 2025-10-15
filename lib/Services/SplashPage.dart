@@ -2,14 +2,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../Services/Authservices.dart';
+
+// ✅ FIXED import paths (this file is in lib/Modules/Common/)
+
+import '../../Provider/App_Provider.dart';
+import '../../Services/AuthServices.dart';
 import '../Modules/Admin/RootPage.dart';
 import '../Modules/Common/Login_Page.dart';
 import '../Modules/Driver/RootPage.dart';
 import '../Modules/Logistics_s/RootPage.dart';
 import '../Modules/Merchant/RootPage.dart';
 import '../Modules/Sanjit/RootPage.dart';
-import '../Provider/App_Provider.dart';
 
 
 const Color primaryColor = Color(0xFFEF4444);
@@ -29,31 +32,32 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAuth();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAuth());
   }
 
   Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(milliseconds: 900));
-    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    // small pause so the splash shows smoothly
+    await Future.delayed(const Duration(milliseconds: 600));
 
+    final app = Provider.of<AppProvider>(context, listen: false);
     bool navigated = false;
 
     try {
+      // Tries server /auth/me; falls back to cached user if offline
       final authResult = await _authService.getUserData();
-      if (authResult != null && authResult.token != null && authResult.user != null) {
-        await appProvider.setUserFromApiJson(authResult.user, authResult.token);
-        navigated = _navigate(appProvider);
+      if (authResult != null) {
+        await app.setUserFromApiJson(authResult.user, authResult.token);
+        navigated = _navigate(app);
       }
     } catch (e) {
-      debugPrint('Splash: AuthService failed $e');
+      debugPrint('Splash: getUserData failed → $e');
     }
 
+    // If still not navigated, try provider’s local restore
     if (!navigated) {
-      final restored = await appProvider.restoreSession();
+      final restored = await app.restoreSession();
       if (restored) {
-        navigated = _navigate(appProvider);
+        navigated = _navigate(app);
       }
     }
 
@@ -79,6 +83,7 @@ class _SplashPageState extends State<SplashPage> {
     } else {
       dest = const LoginPage();
     }
+
     _replaceWith(dest);
     return true;
   }

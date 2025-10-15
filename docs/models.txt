@@ -1,0 +1,212 @@
+# Spazigo Backend — Database Models Documentation
+
+This document describes all **MongoDB collections and models** used in the Spazigo backend (logistics platform). Each model corresponds to a collection and defines the structure, fields, and relationships.
+
+---
+
+## **1. users**
+Stores all registered users — Admin, Driver, Merchant, Logistic, and Sanjit.
+
+| Field | Type | Description |
+|--------|------|-------------|
+| name | String | Full name of the user |
+| email | String (unique) | Email address |
+| phone | String (unique) | Contact number |
+| passwordHash | String | Hashed password |
+| role | Enum(`admin`, `driver`, `merchant`, `logistic`, `sanjit`) | Role of the user |
+| status | Enum(`active`, `suspended`, `deleted`) | Account status |
+| provider | Enum(`local`, `google`, `apple`) | Auth provider |
+| meta | Mixed | Custom metadata |
+| lastLoginAt | Date | Last login timestamp |
+
+Indexes → email, phone (unique)
+
+---
+
+## **2. driver_profiles**
+Extends user data with driver-specific information.
+
+| Field | Type | Description |
+|--------|------|-------------|
+| user | ObjectId → users | Linked user account |
+| licenseNo | String | Driver license number |
+| licenseExpiry | Date | Expiry of license |
+| vehicle | ObjectId → vehicles | Assigned vehicle |
+| currentStatus | Enum(`offline`, `idle`, `en_route`, `delivering`) | Live status |
+| lastKnownLocation | GeoPoint | Live coordinates |
+| servicePincodes | Array[String] | Service zones |
+| documents | Array[DriverDocument] | Proofs (license, aadhar, RC, etc.) |
+
+**DriverDocument structure:**
+- type: Enum(`driving_license`, `aadhar`, `rc_book`, `insurance`, `pollution`, `other`)
+- number, url, expiryDate, verified, verifiedBy, verifiedAt, notes
+
+Indexes → user (unique), lastKnownLocation (2dsphere)
+
+---
+
+## **3. merchant_profiles**
+Merchant data for business users.
+
+| Field | Type | Description |
+|--------|------|-------------|
+| user | ObjectId → users | Linked user account |
+| companyName | String | Business name |
+| gstNo | String | GST number |
+| contactName | String | Contact person name |
+| primaryPhone | String | Main phone |
+| addresses | Array[Address] | Business locations |
+| walletBalance | Number | Merchant wallet amount |
+
+**Address structure:** line1, line2, city, state, pincode, loc (GeoPoint)
+
+Indexes → user (unique), addresses.loc (2dsphere)
+
+---
+
+## **4. logistic_profiles / admin_profiles**
+Used for logistics managers and admins.
+
+**logistic_profiles** — company details, notes.
+**admin_profiles** — permissions array.
+
+---
+
+## **5. vehicles**
+Vehicle master data.
+
+| Field | Type | Description |
+|--------|------|-------------|
+| numberPlate | String (unique) | Vehicle number |
+| type | Enum(`bike`, `car`, `truck`, etc.) | Vehicle category |
+| capacityKg | Number | Weight capacity |
+| ownerType | Enum(`driver`, `company`, `merchant`) | Vehicle owner |
+| ownerId | ObjectId → users | Linked user |
+| rcDoc | { url } | RC document |
+| status | Enum(`active`, `maintenance`, `retired`) | Operational status |
+
+---
+
+## **6. shipments**
+Central table — tracks deliveries.
+
+| Field | Type | Description |
+|--------|------|-------------|
+| code | String (unique) | Shipment code |
+| merchant | ObjectId → users | Shipment owner |
+| pickup / drop | Object | Locations, contact info |
+| package | Object | Pieces, weight, fragility, COD |
+| pricing | Object | subtotal, tax, discount, total |
+| status | Enum(`created`, `queued`, `assigned`, `picked_up`, `in_transit`, `delivered`, etc.) | Shipment state |
+| assignedDriver | ObjectId → users | Current driver |
+| proofOfDelivery | ObjectId → proofs | Delivery proof |
+
+Indexes → code, merchant+status, pickup.loc, drop.loc (geo)
+
+---
+
+## **7. assignments**
+Tracks driver ↔ shipment lifecycle.
+
+| Field | Type | Description |
+|--------|------|-------------|
+| shipment | ObjectId → shipments | Linked shipment |
+| driver | ObjectId → users | Assigned driver |
+| status | Enum(`offered`, `accepted`, `rejected`, etc.) | Assignment stage |
+| offeredAt / acceptedAt / completedAt | Dates | Status timestamps |
+
+Indexes → shipment, driver, status
+
+---
+
+## **8. tracking_events**
+Logs every shipment movement.
+
+| Field | Type | Description |
+|--------|------|-------------|
+| shipment | ObjectId → shipments | Linked shipment |
+| driver | ObjectId → users | Driver performing action |
+| type | Enum(`status_change`, `location`, `photo`, etc.) | Event type |
+| message | String | Event message |
+| location | GeoPoint | Location of event |
+| photos | Array[{url,label}] | Attached images |
+| at | Date | Timestamp |
+
+Indexes → shipment+type, location (geo)
+
+---
+
+## **9. proofs**
+Stores all verification proofs (delivery, driver docs, merchant GST, etc.)
+
+| Field | Type | Description |
+|--------|------|-------------|
+| subjectType | Enum(`shipment`, `user`, `vehicle`, `merchant`, `other`) | Proof target |
+| subjectId | ObjectId | Linked entity |
+| proofType | Enum(`pod`, `driving_license`, `aadhar`, `rc_book`, etc.) | Proof kind |
+| fileUrls | Array[String] | Uploaded files |
+| signatureImageUrl | String | Signature image |
+| verified | Boolean | Verification status |
+| verifiedBy | ObjectId → users | Verifier |
+
+---
+
+## **10. notifications**
+Stores push/SMS/email/in-app messages.
+
+| Field | Type | Description |
+|--------|------|-------------|
+| user | ObjectId → users | Recipient |
+| type | Enum(`push`, `sms`, `email`, `inapp`) | Channel |
+| title | String | Message title |
+| body | String | Message text |
+| read | Boolean | Read status |
+| sentAt | Date | When sent |
+
+---
+
+## **11. sessions**
+Manages JWT/refresh tokens for multi-device login.
+
+| Field | Type | Description |
+|--------|------|-------------|
+| user | ObjectId → users | Session owner |
+| refreshTokenHash | String | Hashed refresh token |
+| device | Object | Device info (UA, IP) |
+| expiresAt | Date | Expiry time |
+| revoked | Boolean | Revocation flag |
+
+---
+
+## **12. otp_codes**
+Stores OTP codes for login, password reset, or POD verification.
+
+| Field | Type | Description |
+|--------|------|-------------|
+| channel | Enum(`phone`, `email`) | OTP channel |
+| value | String | Phone/email target |
+| codeHash | String | Hashed OTP |
+| purpose | Enum(`login`, `pod`, `password_reset`) | OTP use-case |
+| expiresAt | Date | Expiry |
+| consumed | Boolean | Used flag |
+
+---
+
+## **Summary — Collections List**
+1. users  
+2. driver_profiles  
+3. merchant_profiles  
+4. logistic_profiles  
+5. admin_profiles  
+6. vehicles  
+7. shipments  
+8. assignments  
+9. tracking_events  
+10. proofs  
+11. notifications  
+12. sessions  
+13. otp_codes  
+
+---
+
+**Next Step:** connect this model set to MongoDB through `DbConfig.js` and start implementing `AuthRoutes.js` for registration and login.

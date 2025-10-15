@@ -1,0 +1,161 @@
+# Spazigo Backend — Authentication Middleware Documentation
+
+This document explains the **Auth.js middleware** responsible for authentication and role-based access control in the Spazigo backend.
+
+---
+
+## **Purpose**
+The middleware ensures secure access to APIs by verifying JWT tokens, checking user roles, and optionally allowing public routes. It integrates directly with the `users` collection and is reusable across all modules.
+
+---
+
+## **1. Token Verification — `verifyToken()`**
+**File:** `Middleware/Auth.js`
+
+### **Purpose:**
+Ensures each request has a valid JWT token before accessing protected routes.
+
+### **Workflow:**
+1. Reads the `Authorization` header → expects `Bearer <token>`.
+2. Verifies token using the environment variable `JWT_SECRET`.
+3. Decodes payload → `{ sub, role, email, iat, exp }`.
+4. Attaches data to `req.auth`.
+5. Optionally fetches the user from the database (`req.user`).
+6. Rejects requests if:
+   - No token (401)
+   - Invalid/expired token (401)
+   - Suspended or deleted user (403)
+
+### **Usage:**
+```js
+app.get('/api/secure', verifyToken(), (req, res) => {
+  res.json({ ok: true, user: req.user });
+});
+```
+
+### **Options:**
+`verifyToken({ attachUser: false })` → verifies token without DB lookup.
+
+---
+
+## **2. Optional Authentication — `optionalAuth()`**
+Allows routes to accept both authenticated and anonymous users.
+
+### **Behavior:**
+- If token is present → validate and attach user.
+- If no token or invalid → continue request without error.
+
+### **Usage:**
+```js
+app.get('/api/feed', optionalAuth(), (req, res) => {
+  if (req.user) {
+    // logged-in user
+  } else {
+    // guest
+  }
+});
+```
+
+---
+
+## **3. Role-Based Access — `requireRoles(...roles)`**
+Restricts access to certain roles.
+
+### **Behavior:**
+- Checks `req.auth.role` or `req.user.role`.
+- Allows only if role matches allowed list.
+
+### **Usage:**
+```js
+app.get('/api/admin', verifyToken(), requireRoles('admin'), (req, res) => {
+  res.json({ ok: true, message: 'Welcome Admin' });
+});
+```
+
+### **Example:**
+`requireRoles('admin', 'merchant')` → allows admin and merchant roles.
+
+---
+
+## **4. Self or Role Guard — `requireSelfOrRoles(...roles)`**
+Allows users to access their own data or if they have privileged roles.
+
+### **Behavior:**
+- Compares `req.user._id` with `req.params.id`.
+- If they match → allowed.
+- Else, only allowed if role in provided roles.
+
+### **Usage:**
+```js
+app.get('/api/users/:id', verifyToken(), requireSelfOrRoles('admin'), handler);
+```
+
+---
+
+## **5. JWT Signing Helper — `signAccessToken()`**
+Creates signed JWTs for authenticated users.
+
+### **Usage:**
+```js
+import { signAccessToken } from '../Middleware/Auth.js';
+
+const token = signAccessToken(user, { expiresIn: '2h' });
+```
+
+### **Payload:**
+```js
+{
+  sub: user._id, // user ID
+  role: user.role,
+  email: user.email
+}
+```
+
+### **Default Expiry:**
+2 hours (`expiresIn: '2h'`)
+
+---
+
+## **6. Environment Requirements**
+Ensure `.env` includes:
+```
+JWT_SECRET=your_super_secret_key_here
+```
+
+---
+
+## **7. Example Implementation**
+```js
+import express from 'express';
+import { verifyToken, requireRoles } from './Middleware/Auth.js';
+
+const router = express.Router();
+
+// Public route
+router.get('/ping', (req, res) => res.send('pong'));
+
+// Authenticated route
+router.get('/profile', verifyToken(), (req, res) => res.json(req.user));
+
+// Admin-only route
+router.get('/admin/dashboard', verifyToken(), requireRoles('admin'), (req, res) => {
+  res.json({ ok: true, message: 'Welcome Admin' });
+});
+
+export default router;
+```
+
+---
+
+## **8. Summary of Functions**
+| Function | Purpose |
+|-----------|----------|
+| `verifyToken()` | Ensures valid JWT, attaches user. |
+| `optionalAuth()` | Auth optional for open routes. |
+| `requireRoles(...roles)` | Restrict route access by role. |
+| `requireSelfOrRoles(...roles)` | Allow owner or specific roles. |
+| `signAccessToken(user)` | Generate JWT for authenticated sessions. |
+
+---
+
+**Next Step:** implement `Routes/AuthRoutes.js` to handle login, registration, and token verification using `signAccessToken()`. This will connect directly with `verifyToken()` for secure role-based routing.
