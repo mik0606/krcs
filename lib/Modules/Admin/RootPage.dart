@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../Services/AuthServices.dart';
 import '../Common/Login_Page.dart';
+import '../Logistics_s/RootPage.dart';
+import 'DashboardPage.dart';
+import 'LspPage.dart';
+import 'MerchantsPage.dart';
+import 'ProfilePage.dart';
 
 class AdminRootPage extends StatefulWidget {
   const AdminRootPage({super.key});
@@ -16,15 +21,15 @@ class _AdminRootPageState extends State<AdminRootPage> {
   // Page list — placeholder screens for now
   final List<Widget> _pages = const [
     AdminDashboardPage(),
-    ManageUsersPage(),
-    ReportsPage(),
-    AdminProfilePage(),
+    LspManagementPage(),
+    MerchantManagementPage(),
+    ProfilePage(),
   ];
 
   final List<BottomNavigationBarItem> _navItems = const [
     BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Dashboard'),
-    BottomNavigationBarItem(icon: Icon(Icons.group_rounded), label: 'Users'),
-    BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Reports'),
+    BottomNavigationBarItem(icon: Icon(Icons.local_shipping_rounded), label: 'LSPs'),
+    BottomNavigationBarItem(icon: Icon(Icons.storefront_rounded), label: 'Merchants'),
     BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
   ];
 
@@ -72,14 +77,7 @@ class _AdminRootPageState extends State<AdminRootPage> {
 /// ---------------------------------------------------------------------------
 /// 🏠 Dashboard Page
 /// ---------------------------------------------------------------------------
-class AdminDashboardPage extends StatelessWidget {
-  const AdminDashboardPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const _PageTemplate(title: "Admin Dashboard", icon: Icons.dashboard_rounded);
-  }
-}
 
 /// ---------------------------------------------------------------------------
 /// 👥 Manage Users Page
@@ -108,61 +106,7 @@ class ReportsPage extends StatelessWidget {
 /// ---------------------------------------------------------------------------
 /// 👤 Profile Page with Logout Button
 /// ---------------------------------------------------------------------------
-class AdminProfilePage extends StatelessWidget {
-  const AdminProfilePage({super.key});
 
-  Future<void> _logout(BuildContext context) async {
-    final authService = AuthService.instance;
-    await authService.signOut();
-    if (context.mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-            (route) => false,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.admin_panel_settings_rounded, size: 100, color: Color(0xFFEF4444)),
-            const SizedBox(height: 16),
-            Text(
-              "Admin Profile",
-              style: GoogleFonts.inter(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEF4444),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-              ),
-              icon: const Icon(Icons.logout_rounded, color: Colors.white),
-              label: Text(
-                "Log Out",
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              onPressed: () => _logout(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// ---------------------------------------------------------------------------
 /// 🌟 Common Page Template for Placeholder Pages
