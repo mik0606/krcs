@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../Services/AuthServices.dart';
 import '../Common/Login_Page.dart';
+import 'DashboardPage.dart';
+import 'LogisticsOrdersPage.dart';
+import 'NotificationPage.dart';
+import 'ProfilePage.dart';
 
 class LogisticsRootPage extends StatefulWidget {
   const LogisticsRootPage({super.key});
@@ -13,15 +17,15 @@ class LogisticsRootPage extends StatefulWidget {
 class _LogisticsRootPageState extends State<LogisticsRootPage> {
   int _selectedIndex = 0;
 
-  // Page list — replace with your actual pages later
+  // Page list — actual pages
   final List<Widget> _pages = const [
-    HomePage(),
-    OrdersPage(),
-    NotificationsPage(),
-    ProfilePage(),
+    LogisticsDashboardPage(),
+    PendingDispatchesPage(),
+    DriverTrackingPage(),
+     LogisticsProfilePage(),
   ];
 
-  // Navigation bar items
+  // Navigation items
   final List<BottomNavigationBarItem> _navItems = const [
     BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Home'),
     BottomNavigationBarItem(icon: Icon(Icons.local_shipping_rounded), label: 'Orders'),
@@ -47,11 +51,7 @@ class _LogisticsRootPageState extends State<LogisticsRootPage> {
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 8,
-              offset: Offset(0, -2),
-            ),
+            BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -2)),
           ],
         ),
         child: ClipRRect(
@@ -73,7 +73,6 @@ class _LogisticsRootPageState extends State<LogisticsRootPage> {
     );
   }
 }
-
 /// Dummy pages for navigation
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
