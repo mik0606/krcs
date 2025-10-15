@@ -1,6 +1,7 @@
 // lib/Modules/Admin/LspManagementPage.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '.././Admin/DriverPage.dart';
 
 class LspManagementPage extends StatefulWidget {
   const LspManagementPage({super.key});
@@ -79,9 +80,10 @@ class _LspManagementPageState extends State<LspManagementPage> {
         actions: [
           TextButton(onPressed: () => Navigator.of(c).pop(false), child: const Text('Cancel')),
           ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () => Navigator.of(c).pop(true),
-              child: const Text('Suspend'),),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.of(c).pop(true),
+            child: const Text('Suspend'),
+          ),
         ],
       ),
     );
@@ -113,7 +115,6 @@ class _LspManagementPageState extends State<LspManagementPage> {
 
   void _onNavTap(int idx) {
     setState(() => _selectedNavIndex = idx);
-    // In a real app you'd navigate or change the page; for now, show toast
     const labels = ['Dashboard', 'LSPs', 'Merchants', 'Drivers', 'Settings'];
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Open: ${labels[idx]}')));
   }
@@ -130,7 +131,13 @@ class _LspManagementPageState extends State<LspManagementPage> {
       appBar: AppBar(
         backgroundColor: isDark ? bgDark : Colors.white,
         elevation: 1,
-        title: Text('LSP Management', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87)),
+        title: Text(
+          'LSP Management',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
         actions: [
           IconButton(
             onPressed: () {},
@@ -142,72 +149,73 @@ class _LspManagementPageState extends State<LspManagementPage> {
       ),
       body: Column(
         children: [
-          // Search area + filter chips
+          // Search + filter
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(children: [
-              TextField(
-                controller: _searchCtrl,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Search LSPs by name, route...',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: isDark ? Colors.grey[850] : Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchCtrl,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: 'Search LSPs by name, route...',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: isDark ? Colors.grey[850] : Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 40,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _filters.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (ctx, i) {
-                    final label = _filters[i];
-                    final active = _activeFilter == label;
-                    return ChoiceChip(
-                      label: Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-                      selected: active,
-                      selectedColor: primary.withOpacity(0.12),
-                      backgroundColor: isDark ? Colors.grey[850] : Colors.white,
-                      onSelected: (_) => setState(() => _activeFilter = label),
-                    );
-                  },
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 40,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _filters.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (ctx, i) {
+                      final label = _filters[i];
+                      final active = _activeFilter == label;
+                      return ChoiceChip(
+                        label: Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                        selected: active,
+                        selectedColor: primary.withOpacity(0.12),
+                        backgroundColor: isDark ? Colors.grey[850] : Colors.white,
+                        onSelected: (_) => setState(() => _activeFilter = label),
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
           ),
-
-          // List
+          // LSP List
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: _filteredItems.isEmpty
-                  ? Center(child: Text('No LSPs found', style: GoogleFonts.inter(color: Colors.grey)))
+                  ? Center(
+                      child: Text('No LSPs found', style: GoogleFonts.inter(color: Colors.grey)),
+                    )
                   : ListView.separated(
-                padding: const EdgeInsets.only(bottom: 100, top: 8),
-                itemCount: _filteredItems.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (ctx, idx) {
-                  final item = _filteredItems[idx];
-                  return _LspCard(
-                    item: item,
-                    onView: () => _viewDetails(item),
-                    onApprove: () => _confirmApprove(idx),
-                    onSuspend: () => _confirmSuspend(idx),
-                  );
-                },
-              ),
+                      padding: const EdgeInsets.only(bottom: 100, top: 8),
+                      itemCount: _filteredItems.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (ctx, idx) {
+                        final item = _filteredItems[idx];
+                        return _LspCard(
+                          item: item,
+                          onView: () => _viewDetails(item),
+                          onApprove: () => _confirmApprove(idx),
+                          onSuspend: () => _confirmSuspend(idx),
+                        );
+                      },
+                    ),
             ),
           ),
         ],
       ),
-
-      // Sticky bottom nav (mimics HTML)
-
     );
   }
 }
@@ -294,7 +302,10 @@ class _LspCard extends StatelessWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(item.name, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
-                Text('Fleet: ${item.fleet} | Route: ${item.route} | ${item.active} Active', style: GoogleFonts.inter(color: Colors.grey[600], fontSize: 13)),
+                Text(
+                  'Fleet: ${item.fleet} | Route: ${item.route} | ${item.active} Active',
+                  style: GoogleFonts.inter(color: Colors.grey[600], fontSize: 13),
+                ),
               ]),
             ),
             Container(
@@ -307,19 +318,25 @@ class _LspCard extends StatelessWidget {
           Row(mainAxisAlignment: MainAxisAlignment.end, children: [
             TextButton(
               onPressed: onView,
-              style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+              style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
               child: Text('View Details', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
             ),
             const SizedBox(width: 8),
             ElevatedButton(
               onPressed: onApprove,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
               child: const Text('Approve'),
             ),
             const SizedBox(width: 8),
             ElevatedButton(
               onPressed: onSuspend,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
               child: const Text('Suspend'),
             ),
           ])
@@ -341,7 +358,12 @@ class _LspDetailSheet extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Center(
-            child: Container(height: 6, width: 60, margin: const EdgeInsets.only(bottom: 14), decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(6))),
+            child: Container(
+              height: 6,
+              width: 60,
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(6)),
+            ),
           ),
           Text(item.name, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
@@ -362,7 +384,17 @@ class _LspDetailSheet extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text('Active drivers: ${item.active}', style: GoogleFonts.inter()),
                 const SizedBox(height: 8),
-                Text('Status: ${item.status.name.toUpperCase()}', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: item.status == LspStatus.approved ? Colors.green : item.status == LspStatus.pending ? Colors.orange : Colors.red)),
+                Text(
+                  'Status: ${item.status.name.toUpperCase()}',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    color: item.status == LspStatus.approved
+                        ? Colors.green
+                        : item.status == LspStatus.pending
+                            ? Colors.orange
+                            : Colors.red,
+                  ),
+                ),
               ]),
             ),
           ),
@@ -377,21 +409,30 @@ class _LspDetailSheet extends StatelessWidget {
               ],
             ),
           ),
-          Row(children: [
-            Expanded(
-              child: OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  // navigate to full management screen (placeholder)
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                child: const Text('Open Management'),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Close'),
+                ),
               ),
-            )
-          ])
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => DriverManagementApp(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                  child: const Text('Open Management'),
+                ),
+              ),
+            ],
+          ),
         ]),
       ),
     );
