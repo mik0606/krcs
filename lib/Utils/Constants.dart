@@ -20,7 +20,7 @@ class RestApi {
 class ApiConstants {
   // --- Base URL ---
 
-  static const String baseUrl = 'http://10.146.253.132:3000';
+  static const String baseUrl = 'http://10.135.83.132:3000';
 
   // --- HTTP Methods ---
   static const String post = 'POST';
