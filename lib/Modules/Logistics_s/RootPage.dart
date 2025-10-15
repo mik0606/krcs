@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../Services/AuthServices.dart';
+import '../Common/Login_Page.dart';
 
 class LogisticsRootPage extends StatefulWidget {
   const LogisticsRootPage({super.key});
@@ -59,7 +61,7 @@ class _LogisticsRootPageState extends State<LogisticsRootPage> {
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
             showUnselectedLabels: true,
-            selectedItemColor: const Color(0xFFEF4444), // primary red
+            selectedItemColor: const Color(0xFFEF4444),
             unselectedItemColor: Colors.grey.shade500,
             backgroundColor: Colors.white,
             selectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 12),
@@ -75,7 +77,6 @@ class _LogisticsRootPageState extends State<LogisticsRootPage> {
 /// Dummy pages for navigation
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return const _PageTemplate(title: "Dashboard Overview", icon: Icons.dashboard_rounded);
@@ -84,7 +85,6 @@ class HomePage extends StatelessWidget {
 
 class OrdersPage extends StatelessWidget {
   const OrdersPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return const _PageTemplate(title: "Manage Shipments", icon: Icons.local_shipping_rounded);
@@ -93,27 +93,75 @@ class OrdersPage extends StatelessWidget {
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return const _PageTemplate(title: "Notifications Center", icon: Icons.notifications_active_rounded);
   }
 }
 
+/// Profile Page with functional logout button
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
+  Future<void> _logout(BuildContext context) async {
+    final authService = AuthService.instance;
+    await authService.signOut(); // clear token & session
+    if (context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+            (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const _PageTemplate(title: "My Profile", icon: Icons.person_rounded);
+    return SafeArea(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.person_pin_rounded, size: 100, color: Color(0xFFEF4444)),
+            const SizedBox(height: 16),
+            Text(
+              "My Profile",
+              style: GoogleFonts.inter(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 40),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+              ),
+              icon: const Icon(Icons.logout_rounded, color: Colors.white),
+              label: Text(
+                "Log Out",
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onPressed: () => _logout(context),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
-/// Common UI template for each tab
+/// Reusable template for placeholder pages
 class _PageTemplate extends StatelessWidget {
   final String title;
   final IconData icon;
-
   const _PageTemplate({required this.title, required this.icon});
 
   @override
