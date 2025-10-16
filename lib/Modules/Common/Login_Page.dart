@@ -13,6 +13,7 @@ import '../Driver/RootPage.dart';
 import '../Merchant/RootPage.dart';
 import '../Logistics_s/RootPage.dart';
 import '../Sanjit/RootPage.dart';
+import 'RootRegisterPage.dart';
 
 /// Enterprise-grade Login Page
 class LoginPage extends StatefulWidget {
@@ -346,8 +347,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
                 recognizer: TapGestureRecognizer()
                   ..onTap = () {
-                    // TODO: navigate to register page
-                    _showError('Registration not implemented yet.');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const RegisterPage()),
+                    );
                   },
               ),
             )
